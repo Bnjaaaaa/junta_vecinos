@@ -33,7 +33,8 @@ SECRET_KEY = 'django-insecure-jnwln)g0x3c^n3a6-xx51w(-x!o-%%!=4iyoa7_h)@+1s+5i-a
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['juntavecinos-production.up.railway.app', 'localhost', '127.0.0.1']
+
 
 AUTH_USER_MODEL = 'app.Vecino'
 
