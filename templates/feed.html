@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}Feed Comunitario - {{ block.super }}{% endblock %}
+
+{% block content %}
+<h1>📰 Feed Comunitario</h1>
+
+{% if user.is_authenticated %}
+    <div style="text-align: right; margin-bottom: 20px;">
+        <a href="{% url 'app:crear_publicacion' %}" class="btn btn-primary">
+            ➕ Nueva Publicación
+        </a>
+    </div>
+{% endif %}
+
+{% for publicacion in publicaciones %}
+    <div style="border: 1px solid #ddd; padding: 15px; margin-bottom: 20px; border-radius: 8px;">
+        <h3>{{ publicacion.titulo }}</h3>
+        <p>{{ publicacion.contenido }}</p>
+        <div style="color: #666; font-size: 0.9em;">
+            <strong>👤 {{ publicacion.autor.username }}</strong> | 
+            <span>{{ publicacion.fecha_creacion|date:"d M Y H:i" }}</span> | 
+            <span>{{ publicacion.get_tipo_display }}</span>
+            {% if publicacion.fijado %} | 📌 <strong>Fijado</strong>{% endif %}
+        </div>
+    </div>
+{% empty %}
+    <div style="text-align: center; padding: 40px; color: #666;">
+        <h3>📭 Aún no hay publicaciones</h3>
+        <p>Sé el primero en compartir algo con la comunidad</p>
+    </div>
+{% endfor %}
+{% endblock %}

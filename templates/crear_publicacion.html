@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block title %}Crear Publicación - {{ block.super }}{% endblock %}
+
+{% block content %}
+<h1>📢 Crear Nueva Publicación</h1>
+
+<form method="post">
+    {% csrf_token %}
+    
+    {% for field in form %}
+        <div class="form-group">
+            <label for="{{ field.id_for_label }}">{{ field.label }}:</label>
+            {{ field }}
+            {% if field.errors %}
+                <div style="color: red; font-size: 0.9em;">
+                    {{ field.errors }}
+                </div>
+            {% endif %}
+            {% if field.help_text %}
+                <small style="color: #666;">{{ field.help_text }}</small>
+            {% endif %}
+        </div>
+    {% endfor %}
+    
+    <button type="submit" class="btn btn-primary">Publicar</button>
+    <a href="{% url 'app:feed' %}" class="btn" style="background-color: #6c757d; color: white; margin-left: 10px;">Cancelar</a>
+</form>
+{% endblock %}
