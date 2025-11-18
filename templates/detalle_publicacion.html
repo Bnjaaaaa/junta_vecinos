@@ -1,0 +1,343 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="publicacion-header">
+    <div class="publicacion-badge">
+        <span class="badge {{ publicacion.tipo|lower }}">{{ publicacion.get_tipo_display }}</span>
+    </div>
+    <h1 class="publicacion-titulo">{{ publicacion.titulo }}</h1>
+    
+    <div class="publicacion-meta">
+        <div class="meta-item">
+            <span class="meta-icon">👤</span>
+            <span class="meta-text">{{ publicacion.autor.username }}</span>
+        </div>
+        <div class="meta-item">
+            <span class="meta-icon">📅</span>
+            <span class="meta-text">{{ publicacion.fecha_creacion|date:"d M Y, H:i" }}</span>
+        </div>
+    </div>
+</div>
+
+<div class="publicacion-content">
+    <div class="content-card">
+        <div class="content-body">
+            {{ publicacion.contenido|linebreaks }}
+        </div>
+    </div>
+</div>
+
+<div class="comentarios-section">
+    <div class="section-header">
+        <h2 class="section-title">
+            <span class="title-icon">💬</span>
+            Comentarios
+            <span class="comentarios-count">({{ comentarios.count }})</span>
+        </h2>
+    </div>
+
+    <div class="comentarios-list">
+        {% for c in comentarios %}
+            <div class="comentario-card">
+                <div class="comentario-header">
+                    <div class="comentario-avatar">
+                        {{ c.autor.username|first|upper }}
+                    </div>
+                    <div class="comentario-info">
+                        <div class="comentario-autor">{{ c.autor.username }}</div>
+                        <div class="comentario-fecha">{{ c.fecha_creacion|date:"d M Y, H:i" }}</div>
+                    </div>
+                </div>
+                <div class="comentario-content">
+                    {{ c.contenido }}
+                </div>
+            </div>
+        {% empty %}
+            <div class="empty-state">
+                <div class="empty-icon">💬</div>
+                <h3 class="empty-title">No hay comentarios aún</h3>
+                <p class="empty-description">Sé el primero en comentar esta publicación</p>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    .publicacion-header {
+        text-align: center;
+        margin-bottom: 3rem;
+        padding: 2rem;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
+        border-radius: var(--border-radius);
+        border: 1px solid var(--glass-border);
+    }
+
+    .publicacion-badge {
+        margin-bottom: 1rem;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 0.5rem 1.25rem;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .badge.evento { background: linear-gradient(135deg, #8b5cf6, #a855f7); color: white; }
+    .badge.informacion { background: linear-gradient(135deg, #06b6d4, #0ea5e9); color: white; }
+    .badge.problema { background: linear-gradient(135deg, #f59e0b, #f97316); color: white; }
+    .badge.emergencia { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
+
+    .publicacion-titulo {
+        font-size: 2.5rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, var(--dark) 0%, var(--gray) 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        margin-bottom: 1.5rem;
+        line-height: 1.2;
+    }
+
+    .publicacion-meta {
+        display: flex;
+        justify-content: center;
+        gap: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        background: rgba(255, 255, 255, 0.7);
+        border-radius: var(--border-radius-sm);
+        border: 1px solid var(--glass-border);
+    }
+
+    .meta-icon {
+        font-size: 1.1rem;
+    }
+
+    .meta-text {
+        font-weight: 500;
+        color: var(--dark);
+    }
+
+    .publicacion-content {
+        margin-bottom: 3rem;
+    }
+
+    .content-card {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-radius: var(--border-radius);
+        padding: 2.5rem;
+        border: 1px solid var(--glass-border);
+        box-shadow: var(--shadow);
+    }
+
+    .content-body {
+        font-size: 1.1rem;
+        line-height: 1.7;
+        color: var(--dark);
+    }
+
+    .comentarios-section {
+        margin-top: 3rem;
+    }
+
+    .section-header {
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+    }
+
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--dark);
+    }
+
+    .title-icon {
+        font-size: 1.75rem;
+    }
+
+    .comentarios-count {
+        background: var(--primary);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    .comentarios-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .comentario-card {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        border: 1px solid var(--glass-border);
+        box-shadow: var(--shadow);
+        transition: var(--transition);
+        animation: slideInUp 0.5s ease-out;
+    }
+
+    .comentario-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .comentario-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .comentario-avatar {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+
+    .comentario-info {
+        flex: 1;
+    }
+
+    .comentario-autor {
+        font-weight: 600;
+        color: var(--dark);
+        margin-bottom: 0.25rem;
+    }
+
+    .comentario-fecha {
+        font-size: 0.85rem;
+        color: var(--gray);
+    }
+
+    .comentario-content {
+        color: var(--dark);
+        line-height: 1.6;
+        padding-left: 3.5rem;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem 2rem;
+        background: rgba(255, 255, 255, 0.5);
+        border-radius: var(--border-radius);
+        border: 2px dashed var(--glass-border);
+    }
+
+    .empty-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    .empty-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--gray);
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-description {
+        color: var(--gray);
+        font-size: 1rem;
+    }
+
+    /* Animaciones */
+    @keyframes slideInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .comentario-card {
+        animation: slideInUp 0.5s ease-out;
+        animation-fill-mode: both;
+    }
+
+    .comentario-card:nth-child(1) { animation-delay: 0.1s; }
+    .comentario-card:nth-child(2) { animation-delay: 0.2s; }
+    .comentario-card:nth-child(3) { animation-delay: 0.3s; }
+    .comentario-card:nth-child(4) { animation-delay: 0.4s; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .publicacion-header {
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .publicacion-titulo {
+            font-size: 2rem;
+        }
+
+        .publicacion-meta {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .content-card {
+            padding: 1.5rem;
+        }
+
+        .comentario-content {
+            padding-left: 0;
+            margin-top: 1rem;
+        }
+
+        .comentario-header {
+            margin-bottom: 0;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .publicacion-titulo {
+            font-size: 1.75rem;
+        }
+
+        .content-card {
+            padding: 1.25rem;
+        }
+
+        .comentario-card {
+            padding: 1.25rem;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+        }
+    }
+</style>
+{% endblock %}

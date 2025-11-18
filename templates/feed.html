@@ -1,0 +1,444 @@
+{% extends 'base.html' %}
+
+{% block title %}Feed Comunitario - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="feed-header">
+    <div class="header-content">
+        <h1 class="feed-title">
+            <span class="title-icon">📰</span>
+            Feed Comunitario
+        </h1>
+        <p class="feed-subtitle">Mantente informado sobre lo que sucede en tu comunidad</p>
+    </div>
+    
+    {% if user.is_authenticated %}
+        <div class="header-actions">
+            <a href="{% url 'app:crear_publicacion' %}" class="btn btn-primary btn-with-icon">
+                <span class="btn-icon">➕</span>
+                Nueva Publicación
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<div class="feed-container">
+    {% for publicacion in publicaciones %}
+        <article class="publicacion-card {% if publicacion.fijado %}fijado{% endif %}" data-aos="fade-up">
+            {% if publicacion.fijado %}
+                <div class="fijado-badge">
+                    <span class="badge-icon">📌</span>
+                    Fijado
+                </div>
+            {% endif %}
+            
+            <div class="card-header">
+                <div class="tipo-badge {{ publicacion.tipo|lower }}">
+                    {{ publicacion.get_tipo_display }}
+                </div>
+                <div class="fecha">
+                    {{ publicacion.fecha_creacion|date:"d M Y, H:i" }}
+                </div>
+            </div>
+            
+            <div class="card-body">
+                <h3 class="publicacion-titulo">
+                    <a href="{% url 'app:detalle_publicacion' publicacion.id %}" class="titulo-link">
+                        {{ publicacion.titulo }}
+                    </a>
+                </h3>
+                <p class="publicacion-contenido">
+                    {{ publicacion.contenido|truncatewords:30 }}
+                </p>
+                
+                {% if publicacion.contenido|wordcount > 30 %}
+                    <a href="{% url 'app:detalle_publicacion' publicacion.id %}" class="leer-mas">
+                        Leer más →
+                    </a>
+                {% endif %}
+            </div>
+            
+            <div class="card-footer">
+                <div class="autor-info">
+                    <div class="autor-avatar">
+                        {{ publicacion.autor.username|first|upper }}
+                    </div>
+                    <div class="autor-details">
+                        <div class="autor-nombre">{{ publicacion.autor.username }}</div>
+                        <div class="autor-rol">Vecino</div>
+                    </div>
+                </div>
+                <div class="acciones">
+                    <button class="accion-btn" title="Me gusta">
+                        <span class="accion-icon">👍</span>
+                        <span class="accion-count">0</span>
+                    </button>
+                    <button class="accion-btn" title="Comentar">
+                        <span class="accion-icon">💬</span>
+                        <span class="accion-count">0</span>
+                    </button>
+                </div>
+            </div>
+        </article>
+    {% empty %}
+        <div class="empty-feed">
+            <div class="empty-icon">📭</div>
+            <h3 class="empty-title">Aún no hay publicaciones</h3>
+            <p class="empty-description">Sé el primero en compartir algo con la comunidad</p>
+            {% if user.is_authenticated %}
+                <a href="{% url 'app:crear_publicacion' %}" class="btn btn-primary btn-large">
+                    <span class="btn-icon">📢</span>
+                    Crear primera publicación
+                </a>
+            {% else %}
+                <a href="{% url 'app:login' %}" class="btn btn-primary btn-large">
+                    <span class="btn-icon">🔐</span>
+                    Iniciar sesión para publicar
+                </a>
+            {% endif %}
+        </div>
+    {% endfor %}
+</div>
+
+<style>
+    .feed-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 3rem;
+        gap: 2rem;
+    }
+
+    .header-content {
+        flex: 1;
+    }
+
+    .feed-title {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        font-size: 2.5rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, var(--dark) 0%, var(--primary) 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        margin-bottom: 0.5rem;
+    }
+
+    .title-icon {
+        font-size: 2.75rem;
+    }
+
+    .feed-subtitle {
+        color: var(--gray);
+        font-size: 1.1rem;
+        margin: 0;
+    }
+
+    .header-actions {
+        flex-shrink: 0;
+    }
+
+    .btn-with-icon {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem 1.5rem;
+        font-weight: 600;
+    }
+
+    .feed-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .publicacion-card {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-radius: var(--border-radius);
+        padding: 2rem;
+        border: 1px solid var(--glass-border);
+        box-shadow: var(--shadow);
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .publicacion-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .publicacion-card.fijado {
+        border-left: 4px solid var(--accent);
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, rgba(255, 255, 255, 0.7) 100%);
+    }
+
+    .fijado-badge {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: var(--accent);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        z-index: 2;
+    }
+
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .tipo-badge {
+        padding: 0.5rem 1.25rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .tipo-badge.evento { background: linear-gradient(135deg, #8b5cf6, #a855f7); color: white; }
+    .tipo-badge.informacion { background: linear-gradient(135deg, #06b6d4, #0ea5e9); color: white; }
+    .tipo-badge.problema { background: linear-gradient(135deg, #f59e0b, #f97316); color: white; }
+    .tipo-badge.emergencia { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
+
+    .fecha {
+        color: var(--gray);
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    .card-body {
+        margin-bottom: 1.5rem;
+    }
+
+    .publicacion-titulo {
+        margin-bottom: 1rem;
+    }
+
+    .titulo-link {
+        color: var(--dark);
+        text-decoration: none;
+        font-size: 1.5rem;
+        font-weight: 600;
+        line-height: 1.3;
+        transition: var(--transition);
+    }
+
+    .titulo-link:hover {
+        color: var(--primary);
+    }
+
+    .publicacion-contenido {
+        color: var(--gray);
+        line-height: 1.6;
+        margin-bottom: 1rem;
+    }
+
+    .leer-mas {
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: var(--transition);
+    }
+
+    .leer-mas:hover {
+        color: var(--primary-dark);
+    }
+
+    .card-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 1.5rem;
+        border-top: 1px solid rgba(99, 102, 241, 0.1);
+    }
+
+    .autor-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .autor-avatar {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+
+    .autor-details {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .autor-nombre {
+        font-weight: 600;
+        color: var(--dark);
+    }
+
+    .autor-rol {
+        font-size: 0.85rem;
+        color: var(--gray);
+    }
+
+    .acciones {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .accion-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        background: rgba(99, 102, 241, 0.1);
+        border: none;
+        border-radius: 20px;
+        color: var(--primary);
+        font-weight: 500;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+    .accion-btn:hover {
+        background: rgba(99, 102, 241, 0.2);
+        transform: translateY(-2px);
+    }
+
+    .empty-feed {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: rgba(255, 255, 255, 0.5);
+        border-radius: var(--border-radius);
+        border: 2px dashed var(--glass-border);
+    }
+
+    .empty-icon {
+        font-size: 4rem;
+        margin-bottom: 1.5rem;
+        opacity: 0.5;
+    }
+
+    .empty-title {
+        font-size: 1.75rem;
+        font-weight: 600;
+        color: var(--gray);
+        margin-bottom: 0.75rem;
+    }
+
+    .empty-description {
+        color: var(--gray);
+        font-size: 1.1rem;
+        margin-bottom: 2rem;
+    }
+
+    .btn-large {
+        padding: 1rem 2rem;
+        font-size: 1.1rem;
+    }
+
+    /* Animaciones */
+    [data-aos="fade-up"] {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: all 0.6s ease;
+    }
+
+    [data-aos="fade-up"].aos-animate {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .feed-header {
+            flex-direction: column;
+            text-align: center;
+            gap: 1.5rem;
+        }
+
+        .feed-title {
+            font-size: 2rem;
+            justify-content: center;
+        }
+
+        .publicacion-card {
+            padding: 1.5rem;
+        }
+
+        .card-header {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        .card-footer {
+            flex-direction: column;
+            gap: 1.5rem;
+            align-items: flex-start;
+        }
+
+        .acciones {
+            width: 100%;
+            justify-content: space-around;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .feed-title {
+            font-size: 1.75rem;
+        }
+
+        .publicacion-card {
+            padding: 1.25rem;
+        }
+
+        .titulo-link {
+            font-size: 1.25rem;
+        }
+
+        .empty-feed {
+            padding: 3rem 1rem;
+        }
+    }
+</style>
+
+<script>
+    // Simple animation on scroll
+    document.addEventListener('DOMContentLoaded', function() {
+        const cards = document.querySelectorAll('[data-aos="fade-up"]');
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('aos-animate');
+                }
+            });
+        }, { threshold: 0.1 });
+        
+        cards.forEach(card => {
+            observer.observe(card);
+        });
+    });
+</script>
+{% endblock %}

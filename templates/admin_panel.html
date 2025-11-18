@@ -1,0 +1,659 @@
+{% extends 'base.html' %}
+{% block title %}Panel de Administración - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="admin-header">
+    <div class="admin-title-section">
+        <h1 class="admin-title">
+            <span class="admin-icon">⚙️</span>
+            Panel de Administración
+        </h1>
+        <p class="admin-subtitle">Gestiona usuarios, publicaciones y denuncias de la comunidad</p>
+    </div>
+</div>
+
+<div class="admin-grid">
+    <!-- Tarjeta de Estadísticas -->
+    <div class="stats-card">
+        <div class="stats-header">
+            <h3 class="stats-title">📊 Resumen General</h3>
+        </div>
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-icon users">👥</div>
+                <div class="stat-info">
+                    <div class="stat-number">{{ usuarios.count }}</div>
+                    <div class="stat-label">Usuarios</div>
+                </div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-icon posts">📰</div>
+                <div class="stat-info">
+                    <div class="stat-number">{{ publicaciones.count }}</div>
+                    <div class="stat-label">Publicaciones</div>
+                </div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-icon reports">🚨</div>
+                <div class="stat-info">
+                    <div class="stat-number">{{ denuncias.count }}</div>
+                    <div class="stat-label">Denuncias</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DENUNCIAS -->
+    <div class="admin-section">
+        <div class="section-header">
+            <h2 class="section-title">
+                <span class="section-icon">🚨</span>
+                Denuncias
+            </h2>
+            <span class="section-badge">{{ denuncias.count }}</span>
+        </div>
+        <p class="section-description">Revisa y gestiona las denuncias de los usuarios</p>
+        
+        <div class="table-container">
+            <table class="modern-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Usuario</th>
+                        <th>Descripción</th>
+                        <th>Estado</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if denuncias %}
+                        {% for d in denuncias %}
+                            <tr class="table-row">
+                                <td class="table-id">#{{ d.id }}</td>
+                                <td class="table-user">
+                                    <div class="user-avatar">
+                                        {{ d.usuario.username|first|upper }}
+                                    </div>
+                                    {{ d.usuario.username }}
+                                </td>
+                                <td class="table-desc">{{ d.descripcion|default:"—"|truncatewords:8 }}</td>
+                                <td class="table-status">
+                                    <span class="status-badge pending">Pendiente</span>
+                                </td>
+                                <td class="table-actions">
+                                    <button class="btn btn-sm btn-primary" disabled>Pendiente</button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr class="table-empty">
+                            <td colspan="5">
+                                <div class="empty-state">
+                                    <div class="empty-icon">🚨</div>
+                                    <h4>No hay denuncias</h4>
+                                    <p>Todas las denuncias han sido resueltas</p>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- USUARIOS -->
+    <div class="admin-section">
+        <div class="section-header">
+            <h2 class="section-title">
+                <span class="section-icon">👥</span>
+                Usuarios
+            </h2>
+            <span class="section-badge">{{ usuarios.count }}</span>
+        </div>
+        <p class="section-description">Lista de usuarios registrados (últimos 20)</p>
+        
+        <div class="users-grid">
+            {% for u in usuarios %}
+                <div class="user-card">
+                    <div class="user-avatar large">
+                        {{ u.username|first|upper }}
+                        {% if u.is_superuser %}
+                            <span class="admin-badge" title="Administrador">👑</span>
+                        {% endif %}
+                    </div>
+                    <div class="user-info">
+                        <h4 class="user-name">{{ u.username }}</h4>
+                        <p class="user-email">{{ u.email|default:"sin email" }}</p>
+                        <div class="user-meta">
+                            <span class="meta-item">📅 {{ u.date_joined|date:"d M Y" }}</span>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="empty-state">
+                    <div class="empty-icon">👥</div>
+                    <h4>No hay usuarios</h4>
+                    <p>No se han registrado usuarios aún</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- PUBLICACIONES -->
+    <div class="admin-section">
+        <div class="section-header">
+            <h2 class="section-title">
+                <span class="section-icon">📰</span>
+                Publicaciones
+            </h2>
+            <span class="section-badge">{{ publicaciones.count }}</span>
+        </div>
+        <p class="section-description">Listado de publicaciones activas</p>
+        
+        <div class="table-container">
+            <table class="modern-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Título</th>
+                        <th>Autor</th>
+                        <th>Creado</th>
+                        <th>Estado</th>
+                        <th class="text-end">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in publicaciones %}
+                        <tr class="table-row">
+                            <td class="table-id">#{{ p.id }}</td>
+                            <td class="table-title fw-semibold">{% firstof p.titulo p.asunto %}</td>
+                            <td class="table-user">
+                                <div class="user-avatar small">
+                                    {% firstof p.autor.username p.usuario.username|first|upper %}
+                                </div>
+                                @{% firstof p.autor.username p.usuario.username %}
+                            </td>
+                            <td class="table-date">
+                                {% firstof p.fecha_creacion p.created_at as fc %}
+                                {{ fc|date:"d M Y H:i" }}
+                            </td>
+                            <td class="table-status">
+                                {% if p.visible %}
+                                    <span class="status-badge active">Visible</span>
+                                {% elif p.activo %}
+                                    <span class="status-badge active">Activo</span>
+                                {% elif p.estado %}
+                                    <span class="status-badge inactive">{{ p.estado|capfirst }}</span>
+                                {% else %}
+                                    <span class="status-badge inactive">—</span>
+                                {% endif %}
+                            </td>
+                            <td class="table-actions">
+                                <div class="action-buttons">
+                                    <a href="{% url 'app:admin_publicacion_toggle' p.id %}" class="btn btn-sm btn-secondary">
+                                        {% if p.visible or p.activo %}Ocultar{% else %}Mostrar{% endif %}
+                                    </a>
+                                    <form action="{% url 'app:admin_publicacion_eliminar' p.id %}" method="post" class="d-inline"
+                                          onsubmit="return confirm('¿Eliminar esta publicación?');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-danger">Eliminar</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr class="table-empty">
+                            <td colspan="6">
+                                <div class="empty-state">
+                                    <div class="empty-icon">📰</div>
+                                    <h4>No hay publicaciones</h4>
+                                    <p>No se han creado publicaciones aún</p>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .admin-header {
+        margin-bottom: 3rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+    }
+
+    .admin-title {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        font-size: 2.5rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        margin-bottom: 0.5rem;
+    }
+
+    .admin-icon {
+        font-size: 2.75rem;
+    }
+
+    .admin-subtitle {
+        color: var(--gray);
+        font-size: 1.1rem;
+        margin: 0;
+    }
+
+    .admin-grid {
+        display: grid;
+        gap: 2rem;
+    }
+
+    .stats-card {
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+        border-radius: var(--border-radius);
+        padding: 2rem;
+        border: 1px solid var(--glass-border);
+        backdrop-filter: blur(10px);
+    }
+
+    .stats-header {
+        margin-bottom: 1.5rem;
+    }
+
+    .stats-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--dark);
+        margin: 0;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .stat-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.7);
+        border-radius: var(--border-radius-sm);
+        border: 1px solid var(--glass-border);
+    }
+
+    .stat-icon {
+        font-size: 2rem;
+        padding: 0.5rem;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.9);
+    }
+
+    .stat-icon.users { background: rgba(107, 114, 128, 0.1); }
+    .stat-icon.posts { background: rgba(16, 185, 129, 0.1); }
+    .stat-icon.reports { background: rgba(239, 68, 68, 0.1); }
+
+    .stat-number {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--dark);
+        line-height: 1;
+    }
+
+    .stat-label {
+        font-size: 0.9rem;
+        color: var(--gray);
+        font-weight: 500;
+    }
+
+    .admin-section {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(10px);
+        border-radius: var(--border-radius);
+        padding: 2rem;
+        border: 1px solid var(--glass-border);
+        box-shadow: var(--shadow);
+    }
+
+    .section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+    }
+
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--dark);
+        margin: 0;
+    }
+
+    .section-icon {
+        font-size: 1.75rem;
+    }
+
+    .section-badge {
+        background: var(--primary);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    .section-description {
+        color: var(--gray);
+        margin-bottom: 1.5rem;
+    }
+
+    .table-container {
+        overflow-x: auto;
+        border-radius: var(--border-radius-sm);
+        border: 1px solid var(--glass-border);
+    }
+
+    .modern-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+    }
+
+    .modern-table th {
+        background: rgba(99, 102, 241, 0.05);
+        padding: 1rem 1.5rem;
+        text-align: left;
+        font-weight: 600;
+        color: var(--dark);
+        border-bottom: 1px solid var(--glass-border);
+    }
+
+    .modern-table td {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid rgba(99, 102, 241, 0.05);
+    }
+
+    .table-row:hover {
+        background: rgba(99, 102, 241, 0.02);
+    }
+
+    .table-id {
+        font-weight: 600;
+        color: var(--gray);
+        font-family: 'Monaco', 'Consolas', monospace;
+    }
+
+    .table-user {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .user-avatar {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 0.9rem;
+        position: relative;
+    }
+
+    .user-avatar.small {
+        width: 30px;
+        height: 30px;
+        font-size: 0.8rem;
+    }
+
+    .user-avatar.large {
+        width: 60px;
+        height: 60px;
+        font-size: 1.25rem;
+    }
+
+    .admin-badge {
+        position: absolute;
+        bottom: -2px;
+        right: -2px;
+        background: var(--accent);
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.7rem;
+    }
+
+    .table-desc {
+        max-width: 200px;
+        color: var(--gray);
+    }
+
+    .table-title {
+        color: var(--dark);
+        font-weight: 600;
+    }
+
+    .table-date {
+        color: var(--gray);
+        font-size: 0.9rem;
+    }
+
+    .status-badge {
+        padding: 0.375rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .status-badge.active {
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+        border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    .status-badge.pending {
+        background: rgba(245, 158, 11, 0.1);
+        color: #f59e0b;
+        border: 1px solid rgba(245, 158, 11, 0.2);
+    }
+
+    .status-badge.inactive {
+        background: rgba(107, 114, 128, 0.1);
+        color: #64748b;
+        border: 1px solid rgba(107, 114, 128, 0.2);
+    }
+
+    .table-actions {
+        text-align: right;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: flex-end;
+    }
+
+    .btn {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: var(--border-radius-sm);
+        font-weight: 500;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: var(--transition);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .btn-sm {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.8rem;
+    }
+
+    .btn-primary {
+        background: var(--primary);
+        color: white;
+    }
+
+    .btn-secondary {
+        background: rgba(99, 102, 241, 0.1);
+        color: var(--primary);
+        border: 1px solid rgba(99, 102, 241, 0.2);
+    }
+
+    .btn-danger {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--error);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .users-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1rem;
+    }
+
+    .user-card {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1.5rem;
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: var(--border-radius-sm);
+        border: 1px solid var(--glass-border);
+        transition: var(--transition);
+    }
+
+    .user-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow);
+    }
+
+    .user-info {
+        flex: 1;
+    }
+
+    .user-name {
+        font-weight: 600;
+        color: var(--dark);
+        margin: 0 0 0.25rem 0;
+    }
+
+    .user-email {
+        color: var(--gray);
+        font-size: 0.9rem;
+        margin: 0 0 0.5rem 0;
+    }
+
+    .user-meta {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .meta-item {
+        font-size: 0.8rem;
+        color: var(--gray);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem 2rem;
+        color: var(--gray);
+    }
+
+    .empty-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    .empty-state h4 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--gray);
+    }
+
+    .empty-state p {
+        margin: 0;
+        color: var(--gray);
+    }
+
+    .table-empty td {
+        padding: 0;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .admin-title {
+            font-size: 2rem;
+        }
+
+        .admin-section {
+            padding: 1.5rem;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .users-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+
+        .modern-table th,
+        .modern-table td {
+            padding: 0.75rem 1rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .admin-title {
+            font-size: 1.75rem;
+        }
+
+        .admin-section {
+            padding: 1.25rem;
+        }
+
+        .section-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+
+        .user-card {
+            flex-direction: column;
+            text-align: center;
+        }
+    }
+</style>
+{% endblock %}
