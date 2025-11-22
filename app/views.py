@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import HttpResponse
 from .models import Publicacion, Vecino, Comentario
-from .forms import RegistroForm, LoginForm, PublicacionForm
+from .forms import RegistroForm, LoginForm, PublicacionForm, ComentarioForm
 from django.contrib.auth import get_user_model
 
 from django.shortcuts import render, redirect, get_object_or_404
@@ -107,16 +107,30 @@ def prueba(request):
 
 @login_required
 def detalle_publicacion(request, id):
-    # Obtener la publicación o mostrar 404 si no existe
     publicacion = get_object_or_404(Publicacion, id=id)
 
-    # Obtener todos los comentarios relacionados
-    comentarios = Comentario.objects.filter(publicacion=publicacion)
+    # 🔥 Corregido: usar el campo correcto del modelo Comentario
+    comentarios = Comentario.objects.filter(
+        publicacion=publicacion
+    ).order_by('-fecha_comentario')
+
+    if request.method == "POST":
+        form = ComentarioForm(request.POST)
+        if form.is_valid():
+            comentario = form.save(commit=False)
+            comentario.autor = request.user
+            comentario.publicacion = publicacion
+            comentario.save()
+            return redirect('app:detalle_publicacion', id=id)
+    else:
+        form = ComentarioForm()
 
     return render(request, 'detalle_publicacion.html', {
         'publicacion': publicacion,
-        'comentarios': comentarios
+        'comentarios': comentarios,
+        'form': form,
     })
+
 
 @login_required
 def eliminar_publicacion(request, id):
@@ -314,3 +328,30 @@ def aprobar_publicacion(request, id):
     messages.success(request, "Publicación aprobada correctamente.")
     return redirect('app:panel_moderador')
 
+@login_required
+def crear_comentario(request, id):
+    publicacion = get_object_or_404(Publicacion, id=id)
+
+    # NO permitimos que el admin comente
+    if request.user.is_superuser:
+        messages.error(request, "El administrador no puede comentar.")
+        return redirect('app:detalle_publicacion', id=id)
+
+    if request.method == 'POST':
+        contenido = request.POST.get('contenido', '').strip()
+
+        if contenido == "":
+            messages.error(request, "El comentario no puede estar vacío.")
+            return redirect('app:detalle_publicacion', id=id)
+
+        Comentario.objects.create(
+            contenido=contenido,
+            autor=request.user,
+            publicacion=publicacion
+        )
+
+        messages.success(request, "Comentario publicado.")
+        return redirect('app:detalle_publicacion', id=id)
+
+    # No permitimos GET (solo POST)
+    return redirect('app:detalle_publicacion', id=id)

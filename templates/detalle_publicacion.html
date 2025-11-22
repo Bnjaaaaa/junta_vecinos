@@ -9,15 +9,14 @@
 
         {% if user == publicacion.autor %}
         <div class="acciones-publicacion">
-            <a href="{% url 'editar_publicacion' publicacion.id %}" class="btn-editar">Editar</a>
-            <a href="{% url 'eliminar_publicacion' publicacion.id %}" class="btn-eliminar">Eliminar</a>
+            <a href="{% url 'app:editar_publicacion' publicacion.id %}" class="btn-editar">Editar</a>
+            <a href="{% url 'app:eliminar_publicacion' publicacion.id %}" class="btn-eliminar">Eliminar</a>
         </div>
         {% endif %}
     </div>
 
     <h1 class="publicacion-titulo">{{ publicacion.titulo }}</h1>
 
-    
     <div class="publicacion-meta">
         <div class="meta-item">
             <span class="meta-icon">👤</span>
@@ -38,6 +37,9 @@
     </div>
 </div>
 
+<!-- ========================= -->
+<!--  SECCIÓN COMENTARIOS     -->
+<!-- ========================= -->
 <div class="comentarios-section">
     <div class="section-header">
         <h2 class="section-title">
@@ -54,15 +56,32 @@
                     <div class="comentario-avatar">
                         {{ c.autor.username|first|upper }}
                     </div>
+
                     <div class="comentario-info">
-                        <div class="comentario-autor">{{ c.autor.username }}</div>
-                        <div class="comentario-fecha">{{ c.fecha_creacion|date:"d M Y, H:i" }}</div>
+                        <div class="comentario-autor">
+                            {{ c.autor.username }}
+
+                            <!-- Mostrar rol -->
+                            {% if c.autor.groups.all %}
+                                {% if c.autor.groups.all.0.name == "Moderador" %}
+                                    <span class="comentario-rol moderador">Moderador</span>
+                                {% else %}
+                                    <span class="comentario-rol vecino">Vecino</span>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+
+                        <div class="comentario-fecha">
+                            {{ c.fecha_comentario|date:"d M Y, H:i" }}
+                        </div>
                     </div>
                 </div>
+
                 <div class="comentario-content">
                     {{ c.contenido }}
                 </div>
             </div>
+
         {% empty %}
             <div class="empty-state">
                 <div class="empty-icon">💬</div>
@@ -71,9 +90,40 @@
             </div>
         {% endfor %}
     </div>
+
+    <!-- ===================== -->
+    <!--   FORMULARIO COMENTAR -->
+    <!-- ===================== -->
+    {% if user.is_authenticated %}
+    <div class="comentario-form-card">
+        <form method="POST" class="comentario-form">
+            {% csrf_token %}
+            {{ form.contenido }}
+            <button class="btn-comentar" type="submit">Comentar</button>
+        </form>
+    </div>
+    {% endif %}
 </div>
 
+
 <style>
+    .comentario-rol {
+    font-size: 0.75rem;
+    padding: 2px 6px;
+    margin-left: 8px;
+    border-radius: 4px;
+    }
+
+    .comentario-rol.moderador {
+    background: #007bff;
+    color: white;
+    }
+
+    .comentario-rol.vecino {
+    background: #28a745;
+    color: white;
+    }
+
     .publicacion-header {
         text-align: center;
         margin-bottom: 3rem;

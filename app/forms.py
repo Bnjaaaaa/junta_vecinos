@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.core.exceptions import ValidationError
-from .models import Vecino, Publicacion, Categoria
+from .models import Vecino, Publicacion, Categoria, Comentario
 
 class RegistroForm(UserCreationForm):
     email = forms.EmailField(required=True, widget=forms.EmailInput(attrs={
@@ -63,3 +63,16 @@ class PublicacionForm(forms.ModelForm):
         if len(contenido) < 10:
             raise ValidationError("El contenido debe tener al menos 10 caracteres")
         return contenido
+    from .models import Comentario
+
+class ComentarioForm(forms.ModelForm):
+    class Meta:
+        model = Comentario
+        fields = ['contenido']
+        widgets = {
+            'contenido': forms.Textarea(attrs={
+                'class': 'form-control',
+                'placeholder': 'Escribe un comentario...',
+                'rows': 3
+            })
+        }

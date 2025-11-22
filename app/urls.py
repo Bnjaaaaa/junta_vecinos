@@ -18,6 +18,8 @@ urlpatterns = [
     path('publicar/', views.crear_publicacion, name='crear_publicacion'),
     path('publicacion/<int:id>/', detalle_publicacion, name='detalle_publicacion'),
     path('publicacion/<int:id>/editar/', views.editar_publicacion, name='editar_publicacion'),
+    path('publicacion/<int:id>/eliminar/', views.eliminar_publicacion, name='eliminar_publicacion'),
+
 
     # ---- PANEL ADMIN ----
     path('admin/panel/', views.admin_panel, name='admin_panel'),
@@ -29,6 +31,10 @@ urlpatterns = [
     path('moderador/publicacion/<int:pk>/toggle/', views.moderador_toggle_visible, name='moderador_toggle'),
     path('moderador/publicacion/<int:pk>/eliminar/', views.moderador_eliminar, name='moderador_eliminar'),
     path('moderador/aprobar/<int:id>/', views.aprobar_publicacion, name='aprobar_publicacion'),
+
+    # ---- COMENTARIOS ----
+    path('publicacion/<int:id>/comentar/', views.crear_comentario, name='crear_comentario'),
+
 
     # ---- PRUEBA ----
     path('prueba/', views.prueba, name='prueba'),
