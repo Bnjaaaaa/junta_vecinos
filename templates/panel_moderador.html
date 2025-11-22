@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+{% block title %}Panel de Moderación - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="admin-header">
+    <div class="admin-title-section">
+        <h1 class="admin-title">
+            🛡️ Panel de Moderación
+        </h1>
+        <p class="admin-subtitle">Gestiona publicaciones: aprobar, ocultar, editar o eliminar.</p>
+    </div>
+</div>
+
+<div class="admin-grid">
+
+    <!-- ░░░░░░░░░░░░░░░░░░░░░░ -->
+    <!--   SECCIÓN 1: PENDIENTES -->
+    <!-- ░░░░░░░░░░░░░░░░░░░░░░ -->
+    <div class="admin-section">
+        <div class="section-header pending">
+            <h2 class="section-title">📥 Publicaciones Pendientes</h2>
+            <span class="section-badge">{{ pendientes.count }}</span>
+        </div>
+
+        <p class="section-description">Revisa y aprueba o rechaza las publicaciones enviadas por los vecinos.</p>
+
+        <div class="table-container">
+            <table class="modern-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Título</th>
+                        <th>Autor</th>
+                        <th>Fecha</th>
+                        <th>Contenido</th>
+                        <th class="text-end">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in pendientes %}
+                    <tr>
+                        <td>#{{ p.id }}</td>
+                        <td class="fw-semibold">{{ p.titulo }}</td>
+                        <td>@{{ p.autor.username }}</td>
+                        <td>{{ p.fecha_creacion|date:"d M Y H:i" }}</td>
+                        <td>{{ p.contenido|truncatewords:15 }}</td>
+
+                        <td class="text-end">
+                            <!-- APROBAR -->
+                            <a href="{% url 'app:aprobar_publicacion' p.id %}" class="btn btn-sm btn-success">
+                                ✔ Aprobar
+                            </a>
+
+                            <!-- ELIMINAR -->
+                            <form action="{% url 'app:moderador_eliminar' p.id %}" method="post" class="d-inline">
+                                {% csrf_token %}
+                                <button class="btn btn-sm btn-danger" onclick="return confirm('¿Eliminar la publicación?')">
+                                    ✖ Eliminar
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+
+                    {% empty %}
+                    <tr>
+                        <td colspan="6">
+                            <div class="empty-state">
+                                <div class="empty-icon">📭</div>
+                                <h4>No hay publicaciones pendientes</h4>
+                                <p>Cuando los usuarios publiquen, aparecerán aquí.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ░░░░░░░░░░░░░░░░░░░░░░ -->
+    <!--   SECCIÓN 2: APROBADAS -->
+    <!-- ░░░░░░░░░░░░░░░░░░░░░░ -->
+    <div class="admin-section">
+        <div class="section-header approved">
+            <h2 class="section-title">📰 Publicaciones Aprobadas</h2>
+            <span class="section-badge">{{ aprobadas.count }}</span>
+        </div>
+
+        <p class="section-description">Gestiona las publicaciones que ya están visibles en el feed.</p>
+
+        <div class="table-container">
+            <table class="modern-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Título</th>
+                        <th>Autor</th>
+                        <th>Creado</th>
+                        <th>Visible</th>
+                        <th class="text-end">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in aprobadas %}
+                    <tr>
+                        <td>#{{ p.id }}</td>
+                        <td class="fw-semibold">{{ p.titulo }}</td>
+                        <td>@{{ p.autor.username }}</td>
+                        <td>{{ p.fecha_creacion|date:"d M Y H:i" }}</td>
+
+                        <td>
+                            {% if p.visible %}
+                                <span class="status-badge active">Visible</span>
+                            {% else %}
+                                <span class="status-badge inactive">Oculta</span>
+                            {% endif %}
+                        </td>
+
+                        <td class="text-end">
+
+                            <!-- Alternar visibilidad -->
+                            <a href="{% url 'app:moderador_toggle' p.id %}" class="btn btn-sm btn-secondary">
+                                {% if p.visible %}Ocultar{% else %}Mostrar{% endif %}
+                            </a>
+
+                            <!-- Editar -->
+                            <a href="{% url 'app:editar_publicacion' p.id %}" class="btn btn-sm btn-primary">
+                                Editar
+                            </a>
+
+                            <!-- Eliminar -->
+                            <form action="{% url 'app:moderador_eliminar' p.id %}" method="post" class="d-inline">
+                                {% csrf_token %}
+                                <button class="btn btn-sm btn-danger" onclick="return confirm('¿Eliminar publicación?')">Eliminar</button>
+                            </form>
+
+                        </td>
+                    </tr>
+
+                    {% empty %}
+                    <tr>
+                        <td colspan="6">
+                            <div class="empty-state">
+                                <div class="empty-icon">📰</div>
+                                <h4>No hay publicaciones aprobadas</h4>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<style>
+/* Aquí puedes pegar el mismo CSS del panel admin, si ya lo tienes */
+</style>
+
+{% endblock %}

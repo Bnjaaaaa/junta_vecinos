@@ -363,15 +363,27 @@
             <a href="{% url 'app:feed' %}">🏠 Plataforma Vecinal</a>
         </div>
         <div class="navbar-links">
-            {% if user.is_authenticated %}
-                <span class="user-greeting">Hola, {{ user.username }}</span>
-                <a href="{% url 'app:crear_publicacion' %}">📢 Publicar</a>
-                <a href="{% url 'app:logout' %}">🚪 Salir</a>
-            {% else %}
-                <a href="{% url 'app:login' %}">🔐 Ingresar</a>
-                <a href="{% url 'app:registro' %}">📝 Registrarse</a>
-            {% endif %}
-        </div>
+    {% if user.is_authenticated %}
+    <span class="user-greeting">Hola, {{ user.username }}</span>
+    <a href="{% url 'app:crear_publicacion' %}">📢 Publicar</a>
+    <a href="{% url 'app:logout' %}">🚪 Salir</a>
+
+    {% if es_moderador %}
+        <a href="{% url 'app:panel_moderador' %}"
+           class="btn btn-sm btn-warning ms-2">🛡️ Moderador</a>
+    {% endif %}
+
+    {% if es_admin %}
+        <a href="{% url 'app:admin_panel' %}"
+           class="btn btn-sm btn-primary ms-2">⚙️ Admin</a>
+    {% endif %}
+{% else %}
+    <a href="{% url 'app:login' %}">🔐 Ingresar</a>
+    <a href="{% url 'app:registro' %}">📝 Registrarse</a>
+{% endif %}
+
+</div>
+
     </nav>
 
     <div class="container">

@@ -2,10 +2,21 @@
 
 {% block content %}
 <div class="publicacion-header">
-    <div class="publicacion-badge">
-        <span class="badge {{ publicacion.tipo|lower }}">{{ publicacion.get_tipo_display }}</span>
+    <div class="publicacion-top">
+        <div class="publicacion-badge">
+            <span class="badge {{ publicacion.tipo|lower }}">{{ publicacion.get_tipo_display }}</span>
+        </div>
+
+        {% if user == publicacion.autor %}
+        <div class="acciones-publicacion">
+            <a href="{% url 'editar_publicacion' publicacion.id %}" class="btn-editar">Editar</a>
+            <a href="{% url 'eliminar_publicacion' publicacion.id %}" class="btn-eliminar">Eliminar</a>
+        </div>
+        {% endif %}
     </div>
+
     <h1 class="publicacion-titulo">{{ publicacion.titulo }}</h1>
+
     
     <div class="publicacion-meta">
         <div class="meta-item">
