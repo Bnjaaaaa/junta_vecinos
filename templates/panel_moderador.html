@@ -1,0 +1,480 @@
+{% extends 'base.html' %}
+{% block title %}Panel de Moderación - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="admin-header">
+    <div class="admin-title-section">
+        <h1 class="admin-title">
+            🛡️ Panel de Moderación
+        </h1>
+        <p class="admin-subtitle">Gestiona publicaciones: aprobar, ocultar, editar o eliminar.</p>
+    </div>
+</div>
+
+<div class="admin-grid">
+
+    <!-- ░░░░░░░░░░░░░░░░░░░░░░ -->
+    <!--   SECCIÓN 1: PENDIENTES -->
+    <!-- ░░░░░░░░░░░░░░░░░░░░░░ -->
+    <div class="admin-section">
+        <div class="section-header pending">
+            <h2 class="section-title">📥 Publicaciones Pendientes</h2>
+            <span class="section-badge">{{ pendientes.count }}</span>
+        </div>
+
+        <p class="section-description">Revisa y aprueba o rechaza las publicaciones enviadas por los vecinos.</p>
+
+        <div class="table-container">
+            <table class="modern-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Título</th>
+                        <th>Autor</th>
+                        <th>Fecha</th>
+                        <th>Contenido</th>
+                        <th class="text-end">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in pendientes %}
+                    <tr>
+                        <td>#{{ p.id }}</td>
+                        <td class="fw-semibold">{{ p.titulo }}</td>
+                        <td>@{{ p.autor.username }}</td>
+                        <td>{{ p.fecha_creacion|date:"d M Y H:i" }}</td>
+                        <td>{{ p.contenido|truncatewords:15 }}</td>
+
+                        <td class="text-end">
+                            <!-- APROBAR -->
+                            <a href="{% url 'app:aprobar_publicacion' p.id %}" class="btn btn-sm btn-success">
+                                ✔ Aprobar
+                            </a>
+
+                            <!-- ELIMINAR -->
+                            <form action="{% url 'app:moderador_eliminar' p.id %}" method="post" class="d-inline">
+                                {% csrf_token %}
+                                <button class="btn btn-sm btn-danger" onclick="return confirm('¿Eliminar la publicación?')">
+                                    ✖ Eliminar
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+
+                    {% empty %}
+                    <tr>
+                        <td colspan="6">
+                            <div class="empty-state">
+                                <div class="empty-icon">📭</div>
+                                <h4>No hay publicaciones pendientes</h4>
+                                <p>Cuando los usuarios publiquen, aparecerán aquí.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ░░░░░░░░░░░░░░░░░░░░░░ -->
+    <!--   SECCIÓN 2: APROBADAS -->
+    <!-- ░░░░░░░░░░░░░░░░░░░░░░ -->
+    <div class="admin-section">
+        <div class="section-header approved">
+            <h2 class="section-title">📰 Publicaciones Aprobadas</h2>
+            <span class="section-badge">{{ aprobadas.count }}</span>
+        </div>
+
+        <p class="section-description">Gestiona las publicaciones que ya están visibles en el feed.</p>
+
+        <div class="table-container">
+            <table class="modern-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Título</th>
+                        <th>Autor</th>
+                        <th>Creado</th>
+                        <th>Visible</th>
+                        <th class="text-end">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in aprobadas %}
+                    <tr>
+                        <td>#{{ p.id }}</td>
+                        <td class="fw-semibold">{{ p.titulo }}</td>
+                        <td>@{{ p.autor.username }}</td>
+                        <td>{{ p.fecha_creacion|date:"d M Y H:i" }}</td>
+
+                        <td>
+                            {% if p.visible %}
+                                <span class="status-badge active">Visible</span>
+                            {% else %}
+                                <span class="status-badge inactive">Oculta</span>
+                            {% endif %}
+                        </td>
+
+                        <td class="text-end">
+
+                            <!-- Alternar visibilidad -->
+                            <a href="{% url 'app:moderador_toggle' p.id %}" class="btn btn-sm btn-secondary">
+                                {% if p.visible %}Ocultar{% else %}Mostrar{% endif %}
+                            </a>
+
+                            <!-- Editar -->
+                            <a href="{% url 'app:editar_publicacion' p.id %}" class="btn btn-sm btn-primary">
+                                Editar
+                            </a>
+
+                            <!-- Eliminar -->
+                            <form action="{% url 'app:moderador_eliminar' p.id %}" method="post" class="d-inline">
+                                {% csrf_token %}
+                                <button class="btn btn-sm btn-danger" onclick="return confirm('¿Eliminar publicación?')">Eliminar</button>
+                            </form>
+
+                        </td>
+                    </tr>
+
+                    {% empty %}
+                    <tr>
+                        <td colspan="6">
+                            <div class="empty-state">
+                                <div class="empty-icon">📰</div>
+                                <h4>No hay publicaciones aprobadas</h4>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ░░░░░░░░░░░░░░░░░░░░░░ -->
+    <!--   SECCIÓN 3: USUARIOS (BAN / DESBAN) -->
+    <!-- ░░░░░░░░░░░░░░░░░░░░░░ -->
+    <div class="admin-section">
+        <div class="section-header users">
+            <h2 class="section-title">👥 Usuarios</h2>
+            <span class="section-badge">{{ usuarios.count }}</span>
+        </div>
+
+        <p class="section-description">Banear o desbanear usuarios. Usuarios baneados no pueden iniciar sesión.</p>
+
+        <div class="users-grid">
+            {% for u in usuarios %}
+            <div class="user-card">
+                <div class="user-avatar large">
+                    {{ u.username|first|upper }}
+                </div>
+
+                <div class="user-info">
+                    <h4 class="user-name">{{ u.username }}</h4>
+                    <p class="user-email">{{ u.email|default:"sin email" }}</p>
+
+                    {% if not u.is_superuser %}
+
+                        {% if u.is_active %}
+                            <a href="{% url 'app:moderador_toggle_ban' u.id %}"
+                               class="btn btn-sm btn-danger"
+                               onclick="return confirm('¿Banear a este usuario?');">
+                                Banear
+                            </a>
+                        {% else %}
+                            <a href="{% url 'app:moderador_toggle_ban' u.id %}"
+                               class="btn btn-sm btn-secondary"
+                               onclick="return confirm('¿Desbanear a este usuario?');">
+                                Desbanear
+                            </a>
+                        {% endif %}
+
+                    {% endif %}
+                </div>
+            </div>
+            {% empty %}
+            <div class="empty-state">
+                <div class="empty-icon">👥</div>
+                <h4>No hay usuarios disponibles</h4>
+                <p>Todos los usuarios están activos y sin problemas.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</div>
+
+<style>
+    .admin-header {
+        margin-bottom: 3rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+    }
+
+    .admin-title {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        font-size: 2.5rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        margin-bottom: 0.5rem;
+    }
+
+    .admin-subtitle {
+        color: var(--gray);
+        font-size: 1.1rem;
+        margin: 0;
+    }
+
+    .admin-grid {
+        display: grid;
+        gap: 2rem;
+    }
+
+  
+    .admin-section {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(10px);
+        border-radius: var(--border-radius);
+        padding: 2rem;
+        border: 1px solid var(--glass-border);
+        box-shadow: var(--shadow);
+    }
+
+    .section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+    }
+
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--dark);
+        margin: 0;
+    }
+
+    .section-badge {
+        background: var(--primary);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    .section-description {
+        color: var(--gray);
+        margin-bottom: 1.5rem;
+    }
+
+
+    .table-container {
+        overflow-x: auto;
+        border-radius: var(--border-radius-sm);
+        border: 1px solid var(--glass-border);
+    }
+
+    .modern-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+    }
+
+    .modern-table th {
+        background: rgba(99, 102, 241, 0.05);
+        padding: 1rem 1.5rem;
+        text-align: left;
+        font-weight: 600;
+        color: var(--dark);
+        border-bottom: 1px solid var(--glass-border);
+    }
+
+    .modern-table td {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid rgba(99, 102, 241, 0.05);
+    }
+
+    .table-row:hover {
+        background: rgba(99, 102, 241, 0.02);
+    }
+
+    .table-title {
+        color: var(--dark);
+        font-weight: 600;
+    }
+
+    .user-avatar {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .user-avatar.large {
+        width: 60px;
+        height: 60px;
+        font-size: 1.25rem;
+    }
+
+
+    .status-badge {
+        padding: 0.375rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .status-badge.active {
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+        border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    .status-badge.inactive {
+        background: rgba(107, 114, 128, 0.1);
+        color: #64748b;
+        border: 1px solid rgba(107, 114, 128, 0.2);
+    }
+
+    
+    .btn {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: var(--border-radius-sm);
+        font-weight: 500;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: var(--transition);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .btn-sm {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.8rem;
+    }
+
+    .btn-primary {
+        background: var(--primary);
+        color: white;
+    }
+
+    .btn-secondary {
+        background: rgba(99, 102, 241, 0.1);
+        color: var(--primary);
+        border: 1px solid rgba(99, 102, 241, 0.2);
+    }
+
+    .btn-danger {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--error);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .btn-warning {
+        background: rgba(245, 158, 11, 0.12);
+        color: #b45309;
+        border: 1px solid rgba(245, 158, 11, 0.35);
+    }
+
+    .btn-outline-warning {
+        background: transparent;
+        color: #b45309;
+        border: 1px solid rgba(245, 158, 11, 0.55);
+    }
+
+    .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+ 
+    .users-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1rem;
+    }
+
+    .user-card {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1.5rem;
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: var(--border-radius-sm);
+        border: 1px solid var(--glass-border);
+        transition: var(--transition);
+    }
+
+    .user-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow);
+    }
+
+    .user-info {
+        flex: 1;
+    }
+
+    .user-name {
+        font-weight: 600;
+        color: var(--dark);
+        margin: 0 0 0.25rem 0;
+    }
+
+    .user-email {
+        color: var(--gray);
+        font-size: 0.9rem;
+        margin: 0 0 0.5rem 0;
+    }
+
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem 2rem;
+        color: var(--gray);
+    }
+
+    .empty-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+   
+    @media (max-width: 768px) {
+        .admin-title { font-size: 2rem; }
+        .admin-section { padding: 1.5rem; }
+        .users-grid { grid-template-columns: 1fr; }
+        .modern-table th, .modern-table td { padding: 0.75rem 1rem; }
+    }
+
+    @media (max-width: 480px) {
+        .admin-title { font-size: 1.75rem; }
+        .admin-section { padding: 1.25rem; }
+        .section-header { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+        .user-card { flex-direction: column; text-align: center; }
+    }
+
+</style>
+
+{% endblock %}

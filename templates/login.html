@@ -1,0 +1,372 @@
+{% extends 'base.html' %}
+
+{% block title %}Iniciar Sesión - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <div class="auth-icon">🔐</div>
+            <h1 class="auth-title">Iniciar Sesión</h1>
+            <p class="auth-subtitle">Accede a tu cuenta de la comunidad</p>
+        </div>
+
+        <form method="post" class="auth-form">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="id_username" class="form-label">Usuario</label>
+                <div class="input-wrapper">
+                    {{ form.username }}
+                    <span class="input-icon">👤</span>
+                </div>
+                {% if form.username.errors %}
+                    <div class="error-list">
+                        {% for error in form.username.errors %}
+                            <div class="error-item">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="id_password" class="form-label">Contraseña</label>
+                <div class="input-wrapper">
+                    {{ form.password }}
+                    <span class="input-icon">🔒</span>
+                </div>
+                {% if form.password.errors %}
+                    <div class="error-list">
+                        {% for error in form.password.errors %}
+                            <div class="error-item">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-full">
+                <span class="btn-icon">🚀</span>
+                Ingresar a la plataforma
+            </button>
+        </form>
+
+        <div class="auth-footer">
+            <p class="auth-link-text">
+                ¿No tienes cuenta? 
+                <a href="{% url 'app:registro' %}" class="auth-link">
+                    Regístrate aquí
+                </a>
+            </p>
+        </div>
+    </div>
+</div>
+
+<style>
+    .auth-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 60vh;
+        padding: 2rem 0;
+    }
+
+    .auth-card {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-radius: var(--border-radius);
+        padding: 3rem;
+        border: 1px solid var(--glass-border);
+        box-shadow: var(--shadow-lg);
+        width: 100%;
+        max-width: 450px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .auth-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
+    }
+
+    .auth-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+    }
+
+    .auth-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        display: block;
+    }
+
+    .auth-title {
+        font-size: 2.25rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        margin-bottom: 0.5rem;
+    }
+
+    .auth-subtitle {
+        color: var(--gray);
+        font-size: 1.1rem;
+        margin: 0;
+    }
+
+    .auth-form {
+        margin-bottom: 2rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 0.75rem;
+        font-weight: 600;
+        color: var(--dark);
+        font-size: 1rem;
+    }
+
+    .input-wrapper {
+        position: relative;
+    }
+
+    .auth-form input {
+        width: 100%;
+        padding: 1rem 1.5rem 1rem 3rem;
+        border: 1px solid var(--gray-light);
+        border-radius: var(--border-radius-sm);
+        font-size: 1rem;
+        transition: var(--transition);
+        background: rgba(255, 255, 255, 0.9);
+        font-family: 'Inter', sans-serif;
+    }
+
+    .auth-form input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        background: white;
+        transform: translateY(-2px);
+    }
+
+    .input-icon {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 1.25rem;
+        color: var(--gray);
+        transition: var(--transition);
+    }
+
+    .auth-form input:focus + .input-icon {
+        color: var(--primary);
+    }
+
+    .error-list {
+        margin-top: 0.5rem;
+    }
+
+    .error-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1rem;
+        background: rgba(239, 68, 68, 0.08);
+        color: var(--error);
+        border-radius: var(--border-radius-sm);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+        font-size: 0.9rem;
+        margin-top: 0.5rem;
+    }
+
+    .btn-full {
+        width: 100%;
+        justify-content: center;
+        padding: 1.125rem 2rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+
+    .auth-footer {
+        text-align: center;
+        padding-top: 1.5rem;
+        border-top: 1px solid rgba(99, 102, 241, 0.1);
+    }
+
+    .auth-link-text {
+        color: var(--gray);
+        margin: 0;
+    }
+
+    .auth-link {
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 600;
+        transition: var(--transition);
+    }
+
+    .auth-link:hover {
+        color: var(--primary-dark);
+        text-decoration: underline;
+    }
+
+    /* Animaciones para los campos del formulario */
+    .form-group {
+        animation: slideInUp 0.6s ease-out;
+        animation-fill-mode: both;
+    }
+
+    .form-group:nth-child(1) { animation-delay: 0.1s; }
+    .form-group:nth-child(2) { animation-delay: 0.2s; }
+
+    @keyframes slideInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Efecto de shake para errores */
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+    }
+
+    .error-item {
+        animation: shake 0.5s ease-in-out;
+    }
+
+    /* Estados de carga para el botón */
+    .btn-loading {
+        position: relative;
+        color: transparent;
+    }
+
+    .btn-loading::after {
+        content: '';
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        top: 50%;
+        left: 50%;
+        margin-left: -10px;
+        margin-top: -10px;
+        border: 2px solid #ffffff;
+        border-radius: 50%;
+        border-right-color: transparent;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .auth-container {
+            padding: 1rem 0;
+            min-height: 50vh;
+        }
+
+        .auth-card {
+            padding: 2rem;
+            margin: 0 1rem;
+        }
+
+        .auth-title {
+            font-size: 2rem;
+        }
+
+        .auth-icon {
+            font-size: 3.5rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .auth-card {
+            padding: 1.5rem;
+        }
+
+        .auth-title {
+            font-size: 1.75rem;
+        }
+
+        .auth-icon {
+            font-size: 3rem;
+        }
+
+        .auth-form input {
+            padding: 0.875rem 1.25rem 0.875rem 2.75rem;
+        }
+
+        .input-icon {
+            left: 0.875rem;
+        }
+    }
+
+    /* Efectos de foco mejorados */
+    .auth-form input:focus {
+        box-shadow: 
+            0 0 0 3px rgba(99, 102, 241, 0.2),
+            0 4px 12px rgba(99, 102, 241, 0.1);
+    }
+
+    /* Transición suave para todo el card */
+    .auth-card {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .auth-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 
+            0 20px 40px rgba(0, 0, 0, 0.1),
+            0 0 0 1px rgba(99, 102, 241, 0.05);
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('.auth-form');
+        const submitBtn = form.querySelector('button[type="submit"]');
+        
+        form.addEventListener('submit', function() {
+            // Agregar estado de carga al botón
+            submitBtn.classList.add('btn-loading');
+            submitBtn.disabled = true;
+        });
+
+        // Efecto de foco mejorado para inputs
+        const inputs = form.querySelectorAll('input');
+        inputs.forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentElement.classList.add('focused');
+            });
+            
+            input.addEventListener('blur', function() {
+                if (!this.value) {
+                    this.parentElement.classList.remove('focused');
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

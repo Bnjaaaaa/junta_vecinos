@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}Enviar Alerta{% endblock %}
+
+{% block content %}
+
+<div class="admin-section" style="max-width:600px; margin:auto;">
+    <div class="section-header">
+        <h2 class="section-title">⚠️ Enviar Alerta</h2>
+    </div>
+
+    <p class="section-description">
+        Envía una alerta rápida para informar a la comunidad.
+    </p>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <label class="form-label">Título</label>
+        <input type="text" name="titulo" class="form-control" required>
+
+        <label class="form-label" style="margin-top:1rem;">Descripción</label>
+        <textarea name="descripcion" rows="4" class="form-control" required></textarea>
+
+        <button type="submit" class="btn btn-danger" style="margin-top:1.5rem; width:100%;">
+            Enviar Alerta 🚨
+        </button>
+    </form>
+</div>
+
+{% endblock %}
